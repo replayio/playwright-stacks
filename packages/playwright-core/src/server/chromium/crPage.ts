@@ -320,6 +320,10 @@ export class CRPage implements PageDelegate {
     }
   }
 
+  async recordAnnotation(annotation: any): Promise<void> {
+    await this._mainFrameSession._client.send('Runtime.evaluate', { expression: `console.log(${JSON.stringify(annotation)})` });
+  }
+
   rafCountForStablePosition(): number {
     return 1;
   }

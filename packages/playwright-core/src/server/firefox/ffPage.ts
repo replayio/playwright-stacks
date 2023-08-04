@@ -526,6 +526,10 @@ export class FFPage implements PageDelegate {
     });
   }
 
+  async recordAnnotation(annotation: any): Promise<void> {
+    // NYI
+  }
+
   rafCountForStablePosition(): number {
     return 1;
   }

@@ -36,7 +36,7 @@ import { ManualPromise } from '../utils/manualPromise';
 import { debugLogger } from '../common/debugLogger';
 import type { ImageComparatorOptions } from '../utils/comparators';
 import { getComparator } from '../utils/comparators';
-import type { CallMetadata } from './instrumentation';
+import type { CallMetadata, InstrumentationListener } from './instrumentation';
 import { SdkObject } from './instrumentation';
 import type { Artifact } from './artifact';
 import type { TimeoutOptions } from '../common/types';
@@ -87,6 +87,8 @@ export interface PageDelegate {
   getAccessibilityTree(needle?: dom.ElementHandle): Promise<{tree: accessibility.AXNode, needle: accessibility.AXNode | null}>;
   pdf?: (options: channels.PagePdfParams) => Promise<Buffer>;
   coverage?: () => any;
+
+  recordAnnotation(annotation: any): Promise<void>;
 
   // Work around WebKit's raf issues on Windows.
   rafCountForStablePosition(): number;
@@ -169,6 +171,7 @@ export class Page extends SdkObject {
   _video: Artifact | null = null;
   _opener: Page | undefined;
   private _isServerSideOnly = false;
+  private readonly _instrumentationListener: InstrumentationListener;
 
   // Aiming at 25 fps by default - each frame is 40ms, but we give some slack with 35ms.
   // When throttling for tracing, 200ms between frames, except for 10 frames around the action.
@@ -189,6 +192,12 @@ export class Page extends SdkObject {
     if (delegate.pdf)
       this.pdf = delegate.pdf.bind(delegate);
     this.coverage = delegate.coverage ? delegate.coverage() : null;
+    this._instrumentationListener = {
+      onBeforeCall(sdkObject, metadata) {
+        return delegate.recordAnnotation(metadata);
+      },
+    };
+    this.instrumentation.addListener(this._instrumentationListener, browserContext);
   }
 
   async initOpener(opener: PageDelegate | null) {
@@ -272,6 +281,7 @@ export class Page extends SdkObject {
   }
 
   _didClose() {
+    this.instrumentation.removeListener(this._instrumentationListener);
     this._frameManager.dispose();
     this._frameThrottler.dispose();
     assert(this._closedState !== 'closed', 'Page closed twice');
@@ -282,6 +292,7 @@ export class Page extends SdkObject {
   }
 
   _didCrash() {
+    this.instrumentation.removeListener(this._instrumentationListener);
     this._frameManager.dispose();
     this._frameThrottler.dispose();
     this.emit(Page.Events.Crash);
@@ -290,6 +301,7 @@ export class Page extends SdkObject {
   }
 
   _didDisconnect() {
+    this.instrumentation.removeListener(this._instrumentationListener);
     this._frameManager.dispose();
     this._frameThrottler.dispose();
     assert(!this._disconnected, 'Page disconnected twice');

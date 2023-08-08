@@ -193,8 +193,10 @@ export class Page extends SdkObject {
       this.pdf = delegate.pdf.bind(delegate);
     this.coverage = delegate.coverage ? delegate.coverage() : null;
     this._instrumentationListener = {
-      onBeforeCall(sdkObject, metadata) {
-        return delegate.recordAnnotation(metadata);
+      async onBeforeCall(sdkObject, metadata) {
+        if (metadata.rrId) {
+          await delegate.recordAnnotation({ id: metadata.rrId });
+        }
       },
     };
     this.instrumentation.addListener(this._instrumentationListener, browserContext);

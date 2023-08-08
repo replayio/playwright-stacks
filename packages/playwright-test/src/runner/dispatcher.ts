@@ -282,6 +282,7 @@ export class Dispatcher {
         steps: [],
         location,
         stack: params.stack?.length ? params.stack : undefined,
+        rrId: params.rrId,
       };
       steps.set(params.stepId, step);
       (parentStep || result).steps.push(step);

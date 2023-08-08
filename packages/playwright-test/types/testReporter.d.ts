@@ -662,6 +662,11 @@ export interface TestStep {
   parent?: TestStep;
 
   /**
+   * ID for record-replay.
+   */
+  rrId?: string;
+
+  /**
    * Optional stack for the step's creation.
    */
   stack?: Array<StackFrame>;

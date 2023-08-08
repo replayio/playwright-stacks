@@ -114,14 +114,14 @@ export class Connection extends EventEmitter {
       this._tracingCount--;
   }
 
-  async sendMessageToServer(object: ChannelOwner, type: string, method: string, params: any, stackTrace: ParsedStackTrace | null, wallTime: number | undefined): Promise<any> {
+  async sendMessageToServer(object: ChannelOwner, type: string, method: string, params: any, stackTrace: ParsedStackTrace | null, wallTime: number | undefined, rrId?: string): Promise<any> {
     if (this._closedErrorMessage)
       throw new Error(this._closedErrorMessage);
 
     const { apiName, frames } = stackTrace || { apiName: '', frames: [] };
     const guid = object._guid;
     const id = ++this._lastId;
-    const converted = { id, guid, method, params };
+    const converted = { id, guid, method, params, rrId };
     // Do not include metadata in debug logs to avoid noise.
     debugLogger.log('channel:command', converted);
     const location = frames[0] ? { file: frames[0].file, line: frames[0].line, column: frames[0].column } : undefined;

@@ -62,6 +62,12 @@ List of steps inside this step.
 
 User-friendly test step title.
 
+## property: TestStep.rrId
+* since: v1.37
+- type: ?<[string]>
+
+ID for record-replay.
+
 ## method: TestStep.titlePath
 * since: v1.10
 - returns: <[Array]<[string]>>

@@ -195,9 +195,14 @@ export class Page extends SdkObject {
     this._instrumentationListener = {
       async onBeforeCall(sdkObject, metadata) {
         if (metadata.rrId) {
-          await delegate.recordAnnotation({ id: metadata.rrId });
+          await delegate.recordAnnotation({ event: 'step:start', id: metadata.rrId });
         }
       },
+      async onAfterCall(sdkObject, metadata) {
+        if (metadata.rrId) {
+          await delegate.recordAnnotation({ event: 'step:end', id: metadata.rrId });
+        }
+      }
     };
     this.instrumentation.addListener(this._instrumentationListener, browserContext);
   }

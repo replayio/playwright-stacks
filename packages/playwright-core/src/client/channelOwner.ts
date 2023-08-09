@@ -133,6 +133,8 @@ export abstract class ChannelOwner<T extends channels.Channel = channels.Channel
     };
   }
 
+  private lastRRId = 0;
+
   private _createChannel(base: Object): T {
     const channel = new Proxy(base, {
       get: (obj: any, prop: string | symbol) => {
@@ -141,11 +143,12 @@ export abstract class ChannelOwner<T extends channels.Channel = channels.Channel
           if (validator) {
             return (params: any) => {
               return this._wrapApiCall(apiZone => {
+                const rrId = `${this._guid}:${this.lastRRId++}`;
                 const { stackTrace, csi, callCookie, wallTime } = apiZone.reported ? { csi: undefined, callCookie: undefined, stackTrace: null, wallTime: undefined } : apiZone;
                 apiZone.reported = true;
                 if (csi && stackTrace && stackTrace.apiName)
-                  csi.onApiCallBegin(stackTrace.apiName, params, stackTrace, wallTime, callCookie);
-                return this._connection.sendMessageToServer(this, this._type, prop, validator(params, '', { tChannelImpl: tChannelImplToWire, binary: this._connection.isRemote() ? 'toBase64' : 'buffer' }), stackTrace, wallTime);
+                  csi.onApiCallBegin(stackTrace.apiName, params, stackTrace, wallTime, callCookie, rrId);
+                return this._connection.sendMessageToServer(this, this._type, prop, validator(params, '', { tChannelImpl: tChannelImplToWire, binary: this._connection.isRemote() ? 'toBase64' : 'buffer' }), stackTrace, wallTime, rrId);
               });
             };
           }
@@ -157,7 +160,7 @@ export abstract class ChannelOwner<T extends channels.Channel = channels.Channel
     return channel;
   }
 
-  async _wrapApiCall<R>(func: (apiZone: ApiZone) => Promise<R>, isInternal = false): Promise<R> {
+  async _wrapApiCall<R>(func: (apiZone: ApiZone) => Promise<R>, isInternal = false, stepId?: string): Promise<R> {
     const logger = this._logger;
     const stack = captureRawStack();
     const apiZone = zones.zoneData<ApiZone>('apiZone', stack);

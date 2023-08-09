@@ -320,6 +320,10 @@ export class CRPage implements PageDelegate {
     }
   }
 
+  async recordAnnotation(annotation: any): Promise<void> {
+    await this._mainFrameSession._client.send('Runtime.evaluate', { expression: `window.top.__RECORD_REPLAY_ANNOTATION_HOOK__?.("replay-playwright", ${JSON.stringify(annotation)})` });
+  }
+
   rafCountForStablePosition(): number {
     return 1;
   }

@@ -40,6 +40,7 @@ export interface TestStepInternal {
   params?: Record<string, any>;
   error?: TestInfoError;
   infectParentStepsWithError?: boolean;
+  rrId?: string;
 }
 
 export class TestInfoImpl implements TestInfo {
@@ -303,6 +304,7 @@ export class TestInfoImpl implements TestInfo {
       category: data.category,
       wallTime: data.wallTime,
       stack: data.stack,
+      rrId: data.rrId,
     };
     this._onStepBegin(payload);
     this._traceEvents.push(createBeforeActionTraceEventForStep(stepId, parentStep?.stepId, data.apiName || data.title, data.params, data.wallTime, data.stack ?? []));

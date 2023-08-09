@@ -941,6 +941,10 @@ export class WKPage implements PageDelegate {
     });
   }
 
+  async recordAnnotation(annotation: any): Promise<void> {
+    // NYI
+  }
+
   rafCountForStablePosition(): number {
     return process.platform === 'win32' ? 5 : 1;
   }

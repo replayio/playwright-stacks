@@ -225,7 +225,7 @@ export class DispatcherConnection {
   }
 
   async dispatch(message: object) {
-    const { id, guid, method, params, metadata } = message as any;
+    const { id, guid, method, params, metadata, rrId } = message as any;
     const dispatcher = this._dispatchers.get(guid);
     if (!dispatcher) {
       this.onmessage({ id, error: serializeError(new Error(kBrowserOrContextClosedError)) });
@@ -261,6 +261,7 @@ export class DispatcherConnection {
       method,
       params: params || {},
       log: [],
+      rrId,
     };
 
     if (sdkObject && params?.info?.waitId) {
